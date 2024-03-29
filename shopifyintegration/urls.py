@@ -20,5 +20,6 @@ from shopify import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.fetch_restore_product ),
+    path('', views.fetch_backup_object ),
+path('restore/<uuid:uuid>/',views.restore_object ),
 ]
