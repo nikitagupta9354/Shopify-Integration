@@ -30,20 +30,24 @@ def create_product(data):
         "Content-Type": "application/json"
     }
 
-    response = requests.post(url, json=data, headers=headers)
+    response = requests.post(url, data=data, headers=headers)
 
     print(response.status_code)
     print(response.json())
 
 
-def restore_shopify_data(resource, data):
-    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/products/{data["product"]["id"]}.json'
+def restore_shopify_data(data):
+    print(json.loads(data))
+    d=json.loads(data)
+    idval=d.get('product',{}).get('id')
+    print(idval)
+    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/products/{idval}.json'
     headers = {
         'X-Shopify-Access-Token':'' ,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
-    response = requests.put(url, headers=headers, data=json.dumps(data))
+    response = requests.put(url, headers=headers, data=data)
 
     return response
 
@@ -55,26 +59,28 @@ def restore_data(uuid):
         'Accept': 'application/json'
     }
     o=Object.objects.get(id=uuid)
-    products=o.data
-    for product in products['products']:
-        response=restore_shopify_data('products',{'product':product})
+    products=json.loads(o.data)
+    print(products.get("products", [])[0] )
+    num_parts = len(products.get("products", []))
+    print(num_parts)
+    for i in range(0,num_parts):
+        p=products.get("products", [])[i]
 
-    if response.status_code!=200:
+        print({'product':p})
+        data={'product': p}
+
+
+        response = restore_shopify_data(json.dumps(p))
+
+    if response.status_code != 200:
         print('creating product')
-        create_product({'product':product})
+        create_product(json.dumps(data))
+        print(json.dumps(data))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # for product in products['products']:
+    #     response=restore_shopify_data('products',{'product',product})
+    #     print()
+    # if response.status_code!=200:
+    #     print('creating product')
+    #     create_product({'product':product})
