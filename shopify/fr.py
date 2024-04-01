@@ -20,11 +20,33 @@ def fetch_backup_data(object):
     o.object_type=object
     o.data = json.dumps(data)
     o.save()
-    return data
 
 
-def create_product(data):
-    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/products.json'
+def fetch_backup_data_id(object,id):
+    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/{object}/{id}.json'
+
+    # Make the request with the access token included in the headers
+    headers = {
+        'X-Shopify-Access-Token': '',
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.get(url, headers=headers)
+    data = response.json()
+    # print(data)
+    s = Store.objects.get(Organization_name='Trial')
+    o = Object()
+    o.store = s
+    o.object_type = object
+    o.data = json.dumps(data)
+    o.save()
+
+
+
+
+
+def create_object(object_type,data):
+    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/{object_type}.json'
     headers = {
         "X-Shopify-Access-Token":'' ,
         "Content-Type": "application/json"
@@ -36,12 +58,12 @@ def create_product(data):
     print(response.json())
 
 
-def restore_shopify_data(data):
-    print(json.loads(data))
+def restore_shopify_data(object_type,data):
+    #print(json.loads(data))
     d=json.loads(data)
-    idval=d.get('product',{}).get('id')
-    print(idval)
-    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/products/{idval}.json'
+    id_value=d.get('product',{}).get('id')
+    #print(id_value)
+    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/{object_type}/{id_value}.json'
     headers = {
         'X-Shopify-Access-Token':'' ,
         'Content-Type': 'application/json',
@@ -51,31 +73,31 @@ def restore_shopify_data(data):
 
     return response
 
-def restore_data(uuid):
-    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/products.json'
+def restore_data(object_type,uuid):
+    o = Object.objects.get(id=uuid)
+    object_type = o.object_type
+    url = f'https://trialproject12.myshopify.com/admin/api/2024-01/{object_type}.json'
     headers = {
         'X-Shopify-Access-Token': '',
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
-    o=Object.objects.get(id=uuid)
-    products=json.loads(o.data)
-    print(products.get("products", [])[0] )
-    num_parts = len(products.get("products", []))
-    print(num_parts)
+
+    data=json.loads(o.data)
+    #print(products.get("products", [])[0] )
+    num_parts = len(data.get(object_type, []))
+    #print(num_parts)
     for i in range(0,num_parts):
-        p=products.get("products", [])[i]
-
-        print({'product':p})
-        data={'product': p}
-
-
-        response = restore_shopify_data(json.dumps(p))
-
-    if response.status_code != 200:
-        print('creating product')
-        create_product(json.dumps(data))
-        print(json.dumps(data))
+        item=data.get(object_type, [])[i]
+        # print({'product':p})
+        data={object_type[:-1]: item}
+        response = restore_shopify_data(object_type,json.dumps(data))
+        #print(response.status_code)
+        #print(response.text)
+        if response.status_code != 200:
+            print('creating {object_type}')
+            create_object(object_type,json.dumps(data))
+        #print(json.dumps(data))
 
 
     # for product in products['products']:

@@ -12,7 +12,7 @@ def fetch_backup_object(request):
     return HttpResponse(json_data,content_type='application/json')
 
 def restore_object(request,uuid):
-    restore_data(uuid)
+    restore_data('customers',uuid)
     res={'Message':'Data restored'}
     json_data=json.dumps(res)
     return HttpResponse(json_data,content_type='application/json')

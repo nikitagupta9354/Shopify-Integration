@@ -7,6 +7,7 @@ OBJECT_TYPE_CHOICES = (
     ('products', 'Product'),
     ('customers', 'Customer'),
     ('orders', 'Order'),
+    ('blogs', 'Blog'),
     # Add more choices as needed
 )
 class Store(models.Model):
